@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Змійка — Мобільна Версія</title>
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        canvas {
+            border: 2px solid #fff;
+            background: #111;
+        }
+
+        /* Контейнер кнопок */
+        .controls {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 80px 80px 80px;
+            grid-template-rows: 80px 80px 80px;
+            gap: 10px;
+        }
+
+        .btn {
+            background: #222;
+            border: 2px solid #444;
+            border-radius: 10px;
+            color: white;
+            font-size: 22px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+        }
+
+        .btn:active {
+            background: #555;
+        }
+
+        .empty {
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="snake" width="400" height="400"></canvas>
+
+    <div class="controls">
+        <div class="empty"></div>
+        <div class="btn" id="up">▲</div>
+        <div class="empty"></div>
+
+        <div class="btn" id="left">◀</div>
+        <div class="empty"></div>
+        <div class="btn" id="right">▶</div>
+
+        <div class="empty"></div>
+        <div class="btn" id="down">▼</div>
+        <div class="empty"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("snake");
+        const context = canvas.getContext("2d");
+        const box = 20;
+
+        let snake = [{ x: 9 * box, y: 9 * box }];
+        let direction = 'RIGHT';
+        let score = 0;
+
+        let food = {
+            x: Math.floor(Math.random() * 20) * box,
+            y: Math.floor(Math.random() * 20) * box
+        };
+
+        function draw() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Food
+            context.fillStyle = 'red';
+            context.fillRect(food.x, food.y, box, box);
+
+            // Snake
+            for (let i = 0; i < snake.length; i++) {
+                context.fillStyle = i === 0 ? 'green' : 'lightgreen';
+                context.fillRect(snake[i].x, snake[i].y, box, box);
+                context.strokeStyle = 'darkgreen';
+                context.strokeRect(snake[i].x, snake[i].y, box, box);
+            }
+
+            let snakeX = snake[0].x;
+            let snakeY = snake[0].y;
+
+            if (direction === 'LEFT') snakeX -= box;
+            if (direction === 'UP') snakeY -= box;
+            if (direction === 'RIGHT') snakeX += box;
+            if (direction === 'DOWN') snakeY += box;
+
+            if (snakeX === food.x && snakeY === food.y) {
+                score++;
+                food = {
+                    x: Math.floor(Math.random() * 20) * box,
+                    y: Math.floor(Math.random() * 20) * box
+                };
+            } else {
+                snake.pop();
+            }
+
+            let newHead = { x: snakeX, y: snakeY };
+
+            if (
+                snakeX < 0 || snakeY < 0 ||
+                snakeX >= canvas.width || snakeY >= canvas.height ||
+                collision(newHead, snake)
+            ) {
+                clearInterval(game);
+                alert("Гра закінчена! Ваш рахунок: " + score);
+            }
+
+            snake.unshift(newHead);
+        }
+
+        function collision(head, array) {
+            return array.some(segment => head.x === segment.x && head.y === segment.y);
+        }
+
+        // Управління клавішами
+        document.addEventListener("keydown", event => {
+            if (event.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+            if (event.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+            if (event.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+            if (event.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+        });
+
+        // Управління кнопками
+        document.getElementById("up").onclick = () => { if (direction !== "DOWN") direction = "UP"; };
+        document.getElementById("down").onclick = () => { if (direction !== "UP") direction = "DOWN"; };
+        document.getElementById("left").onclick = () => { if (direction !== "RIGHT") direction = "LEFT"; };
+        document.getElementById("right").onclick = () => { if (direction !== "LEFT") direction = "RIGHT"; };
+
+        const game = setInterval(draw, 130);
+    </script>
+
+</body>
+</html>
